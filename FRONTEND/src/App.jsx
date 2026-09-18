@@ -1,27 +1,51 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Services from "./pages/Services";
-import { BookSlots } from "./Pages/BookSlots";
-import { MyBookings } from "./Pages/MyBookings";
-import { Login } from "./Pages/Login";
-import { AdminDashboard } from "./Pages/AdminDashboard";
-// import Slot from "./Pages/Slot"
+import { Routes, Route } from "react-router-dom";
+
+import Services from "./Pages/Services";
+import Navbar from "./Components/Navbar";
+import Login from "./Pages/Login";
+import Home from "./Pages/Home";
+import Register from "./Pages/Register";
+import Booking from "./Pages/BookSlots";
+import Slots from "./Pages/Slot";
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Navbar />
+
       <Routes>
-        <Route path="/" element={<Home />}></Route>
-        <Route path="/services" element={<Services />} />
-        <Route path="/book/:slotd" element={<BookSlots />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        {/* <Route path="/slots/:serviceId" element={<Slot/>}></Route> */}
+
+        <Route path="/" element={<Home />} />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/services"
+          element={<Services />}
+        />
+
+        {/* Select available slot */}
+        <Route
+          path="/slots/:serviceId"
+          element={<Slots />}
+        />
+
+        {/* Confirm selected slot */}
+        <Route
+          path="/book/:slotId"
+          element={<Booking />}
+        />
+
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
 

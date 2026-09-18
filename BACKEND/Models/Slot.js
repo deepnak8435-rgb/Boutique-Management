@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const service = require("./Service");
 
 const slotSchema = new mongoose.Schema({
   service: {
@@ -7,9 +6,26 @@ const slotSchema = new mongoose.Schema({
     ref: "Service",
     required: true,
   },
-  date: { type: Date, required: true },
-  startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
-  isBooked: { type: Boolean, default: false },
+
+  date: {
+    type: Date,
+    required: true,
+  },
+
+  startTime: {
+    type: String,
+    required: true,
+  },
+
+  endTime: {
+    type: String,
+    required: true,
+  },
+
+  isBooked: {
+    type: Boolean,
+    default: false,
+  },
 });
+
 module.exports = mongoose.model("Slot", slotSchema);
