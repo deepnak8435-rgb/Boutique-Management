@@ -2,22 +2,22 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
-  Scissors,
+   Scissors,
   CalendarDays,
   Clock,
   IndianRupee,
   Plus,
   Trash2,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
+  // CheckCircle,
+  // XCircle,
+  // AlertCircle,
   Users,
   Layers,
   ShoppingBag,
   RefreshCw,
   Sparkles,
   ShieldAlert,
-  Tag,
+  // Tag,
   Image as ImageIcon,
   Check,
 } from "lucide-react";
@@ -422,7 +422,7 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-[#fcf8fa] py-8 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#321f2b] to-[#542943] text-white rounded-3xl p-8 shadow-xl mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-linear-to-r from-[#321f2b] to-[#542943] text-white rounded-3xl p-8 shadow-xl mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="flex items-center gap-2 text-pink-300 font-semibold text-xs uppercase tracking-widest mb-2">
               <Sparkles size={16} /> Dewani Boutique Management System
@@ -1196,5 +1196,4 @@ export function AdminDashboard() {
     </div>
   );
 }
-
 export default AdminDashboard;
