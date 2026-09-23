@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import {Menu,X, Scissors, CalendarDays, User, ChevronDown, LogOut, UserCircle,} from "lucide-react";
+import { Menu, X, Scissors, CalendarDays, User, ChevronDown, LogOut, UserCircle, Shield } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
@@ -57,6 +57,14 @@ function Navbar() {
           {/* Logged In */}
           {user ? (
             <>
+              {/* Admin Dashboard link if user is admin */}
+              {user.role === "admin" && (
+                <NavLink to="/admin" className={navLinkStyle}>
+                  <Shield size={18} />
+                  Admin Panel
+                </NavLink>
+              )}
+
               {/* My Bookings */}
               <NavLink to="/my-bookings" className={navLinkStyle}>
                 <CalendarDays size={18} />
@@ -74,7 +82,7 @@ function Navbar() {
                   <User size={20} />
 
                   <span className="font-medium">
-                    {user.name}
+                    {user.name} {user.role === "admin" ? "(Admin)" : ""}
                   </span>
 
                   <ChevronDown
@@ -91,16 +99,18 @@ function Navbar() {
                                   border border-gray-100 rounded-xl
                                   shadow-lg py-2">
 
-                    <Link
-                      to="/profile"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3
-                                 text-gray-700 hover:bg-pink-50
-                                 hover:text-pink-600 transition"
-                    >
-                      <UserCircle size={18} />
-                      My Profile
-                    </Link>
+                    {user.role === "admin" && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3
+                                   text-[#321f2b] font-semibold hover:bg-pink-50
+                                   hover:text-pink-600 transition"
+                      >
+                        <Shield size={18} />
+                        Admin Dashboard
+                      </Link>
+                    )}
 
                     <Link
                       to="/my-bookings"
@@ -132,6 +142,16 @@ function Navbar() {
         ) : (
   /* Logged Out */
   <div className="flex items-center gap-3">
+    <Link
+      to="/login"
+      className="px-5 py-2.5 rounded-lg
+                 bg-pink-600 text-white
+                 hover:bg-pink-700
+                 transition duration-200
+                 font-medium"
+    >
+      Login
+    </Link>
 
     <Link
       to="/register"
@@ -144,9 +164,6 @@ function Navbar() {
     >
       Register
     </Link>
-
-  
-
   </div>
 )}
         </div>

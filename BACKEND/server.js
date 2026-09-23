@@ -9,6 +9,7 @@ const serviceRouter=require("./Routes/serviceRoutes")
 const slotRoutes=require('./Routes/slotRoutes')
 const bookingRoutes=require("./Routes/BookingRoute")
 const authRoutes = require("./Routes/authRoutes");
+const productRoutes = require("./Routes/productRoutes");
 
 // 2 create an app -this represent your whole server
 const app = express();
@@ -20,10 +21,12 @@ mongoose.connect(process.env.MONGO_URI)
 .catch((err)=>console.log('mongodb connection error',err))
 
 
-app.use("/api/services",serviceRouter)
-app.use("/api/slots",slotRoutes)
-app.use("/api/booking",bookingRoutes);
-app.use("/api/auth",authRoutes);
+app.use("/api/services", serviceRouter);
+app.use("/api/slots", slotRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/booking", bookingRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 // 3.define a route :when someone visit "/" (the homepage),send back a message
 app.get("/", (req, res) => {

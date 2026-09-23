@@ -4,7 +4,7 @@ const User = require("../models/User");
 
 async function signup(req, res) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -14,9 +14,10 @@ async function signup(req, res) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({ name, email, password: hashedPassword });
+    const userRole = role && ["admin", "customer"].includes(role) ? role : "customer";
+    const newUser = new User({ name, email, password: hashedPassword, role: userRole });
     const savedUser = await newUser.save();
-    res.status(201).json({ message: "User created", userId: savedUser._id });
+    res.status(201).json({ message: "User created", userId: savedUser._id, role: savedUser.role });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -44,4 +45,33 @@ async function login(req, res) {
   }
 }
 
-module.exports = { signup, login };
+// Demomode helper: Promote user to admin role
+async function makeAdmin(req, res) {
+  try {
+    const userId = req.user.id;
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { role: "admin" },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    // Generate new JWT with updated role
+    const token = jwt.sign(
+      { id: updatedUser._id, role: updatedUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      message: "Account promoted to Admin",
+      token,
+      user: { id: updatedUser._id, name: updatedUser.name, role: updatedUser.role },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { signup, login, makeAdmin };

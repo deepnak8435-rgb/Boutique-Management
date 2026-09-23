@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   CalendarDays,
   Clock,
   CheckCircle,
   AlertCircle,
+  ShoppingBag,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 function BookSlots() {
   const { slotId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const productContext = location.state?.product || null;
 
   const { user } = useAuth();
 
@@ -58,7 +61,7 @@ function BookSlots() {
     try {
       setBooking(true);
 
-      const token = localStorage.getItem("token");
+      const token = user?.token || localStorage.getItem("token");
 
       const response = await fetch(
         "http://localhost:5000/api/bookings",
@@ -174,9 +177,26 @@ function BookSlots() {
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
             Appointment Details
           </h2>
+
+          {productContext && (
+            <div className="bg-[#321f2b] text-white rounded-xl p-5 mb-5 flex items-center gap-4">
+              <img
+                src={productContext.image}
+                alt={productContext.name}
+                className="w-14 h-14 rounded-lg object-cover border border-white/20 shrink-0"
+              />
+              <div>
+                <span className="bg-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  Fitting Trial Item
+                </span>
+                <h4 className="font-bold text-lg mt-0.5">{productContext.name}</h4>
+                <p className="text-xs text-pink-200">Category: {productContext.category} | Fabric: {productContext.fabric || "Silk"}</p>
+              </div>
+            </div>
+          )}
 
           {/* Service */}
           <div className="bg-pink-50 rounded-xl p-6 mb-5">

@@ -10,6 +10,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [role, setRole] = useState("customer");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -41,6 +42,7 @@ const handleSubmit = async (e) => {
           name,
           email,
           password,
+          role,
         }),
       }
     );
@@ -178,6 +180,25 @@ const handleSubmit = async (e) => {
                   className="w-full outline-none bg-transparent text-sm text-gray-800 placeholder:text-gray-400"
                 />
               </div>
+            </div>
+
+            {/* Account Role */}
+            <div className="mb-5">
+              <label
+                htmlFor="role"
+                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+              >
+                Register As
+              </label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full h-13 px-4 rounded-lg border border-[#ddd5da] bg-white outline-none text-sm text-gray-800 focus:border-pink-500 focus:ring-4 focus:ring-pink-100"
+              >
+                <option value="customer">Customer / Client</option>
+                <option value="admin">Admin / Store Manager</option>
+              </select>
             </div>
 
             {/* Email */}

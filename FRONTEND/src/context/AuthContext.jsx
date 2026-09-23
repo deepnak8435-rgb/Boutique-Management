@@ -11,10 +11,12 @@ export function AuthProvider({ children }) {
     const fullUser = { ...userData, token };
     setUser(fullUser);
     localStorage.setItem("user", JSON.stringify(fullUser));
+    localStorage.setItem("token", token);
   };
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
   };
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

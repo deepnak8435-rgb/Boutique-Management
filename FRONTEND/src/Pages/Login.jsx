@@ -47,11 +47,13 @@ const Login = () => {
         return;
       }
 
-      // Existing authentication logic
       login(data.user, data.token);
 
-      // Existing navigation
-      nav("/services");
+      if (data.user?.role === "admin") {
+        nav("/admin");
+      } else {
+        nav("/services");
+      }
 
     } catch (err) {
       setError("Something went wrong. Try again.");

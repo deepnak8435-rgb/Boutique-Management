@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import {Clock,IndianRupee, Scissors, CalendarDays, Sparkles, ArrowRight,} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Clock, IndianRupee, Scissors, CalendarDays, Sparkles, ArrowRight, ShoppingBag } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 function Services() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const location = useLocation();
+  const selectedProduct = location.state?.product || null;
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -413,8 +416,8 @@ function Services() {
 
                     {/* Book Button */}
                     <Link
-                      to="/booking"
-                      state={{ service }}
+                      to={`/slots/${service._id}`}
+                      state={{ service, product: selectedProduct }}
                       className="
                         mt-6
                         w-full
