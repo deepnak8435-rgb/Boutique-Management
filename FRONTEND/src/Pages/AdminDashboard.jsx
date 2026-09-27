@@ -2,45 +2,55 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
-   Scissors,
+  Scissors,
   CalendarDays,
   Clock,
   IndianRupee,
   Plus,
   Trash2,
-  // CheckCircle,
-  // XCircle,
-  // AlertCircle,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
   Users,
   Layers,
   ShoppingBag,
   RefreshCw,
   Sparkles,
   ShieldAlert,
-  // Tag,
+  Tag,
   Image as ImageIcon,
   Check,
+  Upload,
+  PieChart,
+  UserCheck,
+  UserX,
+  Ruler,
+  Eye,
+  Star,
 } from "lucide-react";
 
 export function AdminDashboard() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("overview"); // overview | products | services | slots | bookings
+  const [activeTab, setActiveTab] = useState("overview"); // overview | products | services | slots | bookings | users | reviews
 
   // Data states
+  const [analytics, setAnalytics] = useState(null);
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [slots, setSlots] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [reviewsList, setReviewsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [selectedMeasurementBooking, setSelectedMeasurementBooking] = useState(null);
 
-  // Role promoting loading state
   const [promoting, setPromoting] = useState(false);
 
-  // Preset Boutique Image Samples for quick selection
+  // Preset Boutique Image Samples
   const imagePresets = [
     {
       label: "Silk Saree",
@@ -74,6 +84,8 @@ export function AdminDashboard() {
     image: imagePresets[0].url,
     stock: 10,
   });
+  const [productFile, setProductFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
 
   const [serviceForm, setServiceForm] = useState({
     name: "",
@@ -95,38 +107,73 @@ export function AdminDashboard() {
 
   const token = user?.token || localStorage.getItem("token");
 
-  // Fetch all admin data
+  // Fetch all admin data & MongoDB Aggregation stats
   const fetchAllAdminData = async () => {
     setLoading(true);
     setError("");
     try {
-      // 1. Fetch Products
+      // 1. Fetch Admin Aggregation Dashboard Stats
+      const statsRes = await fetch("http://localhost:5000/api/admin/stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setAnalytics(statsData);
+      }
+
+      // 2. Fetch Products
       const productsRes = await fetch("http://localhost:5000/api/products");
-      const productsData = await productsRes.json();
-      if (productsRes.ok) setProducts(productsData);
+      if (productsRes.ok) setProducts(await productsRes.json());
 
-      // 2. Fetch Services
+      // 3. Fetch Services
       const servicesRes = await fetch("http://localhost:5000/api/services");
-      const servicesData = await servicesRes.json();
-      if (servicesRes.ok) setServices(servicesData);
+      if (servicesRes.ok) setServices(await servicesRes.json());
 
-      // 3. Fetch Admin Slots
+      // 4. Fetch Admin Slots
       const slotsRes = await fetch("http://localhost:5000/api/slots/admin/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const slotsData = await slotsRes.json();
-      if (slotsRes.ok) setSlots(slotsData);
+      if (slotsRes.ok) setSlots(await slotsRes.json());
 
-      // 4. Fetch Admin Bookings
+      // 5. Fetch Admin Bookings
       const bookingsRes = await fetch("http://localhost:5000/api/bookings/admin/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const bookingsData = await bookingsRes.json();
-      if (bookingsRes.ok) setBookings(bookingsData);
+      if (bookingsRes.ok) setBookings(await bookingsRes.json());
+
+      // 6. Fetch Users List
+      const usersRes = await fetch("http://localhost:5000/api/admin/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (usersRes.ok) setUsersList(await usersRes.json());
+
+      // 7. Fetch Reviews List
+      const reviewsRes = await fetch("http://localhost:5000/api/reviews");
+      if (reviewsRes.ok) setReviewsList(await reviewsRes.json());
     } catch (err) {
       setError("Failed to load dashboard data. Ensure backend is running.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle Delete Review
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this customer feedback?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete review");
+
+      setMessage("Customer feedback deleted!");
+      fetchAllAdminData();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -143,15 +190,12 @@ export function AdminDashboard() {
     try {
       const res = await fetch("http://localhost:5000/api/auth/make-admin", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to switch role");
 
-      // Update AuthContext user state
       login(data.user, data.token);
       setMessage("Success! Account updated to Admin.");
       fetchAllAdminData();
@@ -162,7 +206,7 @@ export function AdminDashboard() {
     }
   };
 
-  // Handle Create Product
+  // Handle Create Product with Multer multipart/form-data or Image URL
   const handleCreateProduct = async (e) => {
     e.preventDefault();
     setSubmittingProduct(true);
@@ -170,27 +214,39 @@ export function AdminDashboard() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: productForm.name,
-          category: productForm.category,
-          price: Number(productForm.price),
-          fabric: productForm.fabric,
-          description: productForm.description,
-          image: productForm.image,
-          stock: Number(productForm.stock),
-        }),
-      });
+      let res;
+      if (productFile) {
+        // Upload image file via FormData (Multer)
+        const formData = new FormData();
+        formData.append("name", productForm.name);
+        formData.append("category", productForm.category);
+        formData.append("price", productForm.price);
+        formData.append("fabric", productForm.fabric);
+        formData.append("description", productForm.description);
+        formData.append("stock", productForm.stock);
+        formData.append("image", productFile);
+
+        res = await fetch("http://localhost:5000/api/products", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      } else {
+        // Send JSON with Image URL
+        res = await fetch("http://localhost:5000/api/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(productForm),
+        });
+      }
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create product");
 
-      setMessage(`Product "${productForm.name}" added to MongoDB successfully!`);
+      setMessage(`Product "${productForm.name}" added to MongoDB!`);
       setProductForm({
         name: "",
         category: "Sarees",
@@ -200,6 +256,8 @@ export function AdminDashboard() {
         image: imagePresets[0].url,
         stock: 10,
       });
+      setProductFile(null);
+      setFilePreview(null);
       fetchAllAdminData();
     } catch (err) {
       setError(err.message);
@@ -366,15 +424,75 @@ export function AdminDashboard() {
     }
   };
 
-  // Calculations for overview
-  const totalRevenue = bookings
-    .filter((b) => b.status === "confirmed")
-    .reduce((sum, b) => sum + (b.slot?.service?.price || 0), 0);
+  // Handle Update Garment Tailoring Status
+  const handleUpdateGarmentStatus = async (bookingId, garmentStatus) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/bookings/admin/${bookingId}/garment-status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ garmentStatus }),
+      });
 
-  const pendingBookings = bookings.filter((b) => b.status === "pending").length;
-  const confirmedBookings = bookings.filter((b) => b.status === "confirmed").length;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update garment status");
 
-  // Render Non-Admin Banner if user is not admin
+      setMessage(`Garment progress updated to: ${garmentStatus}`);
+      fetchAllAdminData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Handle Update User Role
+  const handleUpdateUserRole = async (targetUserId, role) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${targetUserId}/role`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ role }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update user role");
+
+      setMessage(`User role updated to ${role}`);
+      fetchAllAdminData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Handle Delete User
+  const handleDeleteUser = async (targetUserId) => {
+    if (!window.confirm("Are you sure you want to delete this user account?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${targetUserId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete user");
+
+      setMessage("User account deleted!");
+      fetchAllAdminData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const totalRevenue = analytics?.totalRevenue || 0;
+  const pendingBookings = analytics?.pendingBookings || 0;
+  const confirmedBookings = analytics?.confirmedBookings || 0;
+
+  // Non-Admin Banner
   if (!user || user.role !== "admin") {
     return (
       <div className="min-h-screen bg-[#fffafc] py-20 px-6 flex items-center justify-center">
@@ -392,7 +510,7 @@ export function AdminDashboard() {
           </p>
 
           <p className="text-gray-600 text-xs mt-2 bg-pink-50 p-3 rounded-xl border border-pink-100">
-            Click the button below to update your account role to <strong>Admin</strong> in MongoDB so you can add products, services, and manage appointments!
+            Click the button below to update your account role to <strong>Admin</strong> in MongoDB so you can manage products, file uploads, services, and appointment analytics!
           </p>
 
           {error && <p className="mt-4 text-xs font-bold text-rose-600">{error}</p>}
@@ -422,14 +540,14 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-[#fcf8fa] py-8 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-linear-to-r from-[#321f2b] to-[#542943] text-white rounded-3xl p-8 shadow-xl mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-gradient-to-r from-[#321f2b] to-[#542943] text-white rounded-3xl p-8 shadow-xl mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="flex items-center gap-2 text-pink-300 font-semibold text-xs uppercase tracking-widest mb-2">
-              <Sparkles size={16} /> Dewani Boutique Management System
+              <Sparkles size={16} /> Dewani Boutique Enterprise Admin
             </div>
             <h1 className="font-serif text-3xl sm:text-4xl font-bold">Admin Control Center</h1>
             <p className="text-pink-100/80 text-sm mt-1">
-              Manage boutique products, services, appointment schedules, and customer orders.
+              Manage products, local image uploads, fitting services, appointment slots, customer orders, and users.
             </p>
           </div>
 
@@ -438,7 +556,7 @@ export function AdminDashboard() {
               onClick={fetchAllAdminData}
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition backdrop-blur-md"
             >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh Data
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh Analytics
             </button>
           </div>
         </div>
@@ -472,7 +590,7 @@ export function AdminDashboard() {
                 : "bg-white text-gray-700 hover:bg-pink-50 border border-gray-100"
             }`}
           >
-            <Layers size={18} /> Overview Stats
+            <PieChart size={18} /> Analytics & Stats
           </button>
 
           <button
@@ -523,9 +641,31 @@ export function AdminDashboard() {
               </span>
             )}
           </button>
+
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 ${
+              activeTab === "users"
+                ? "bg-pink-600 text-white shadow-md shadow-pink-200"
+                : "bg-white text-gray-700 hover:bg-pink-50 border border-gray-100"
+            }`}
+          >
+            <Users size={18} /> User Accounts ({usersList.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("reviews")}
+            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 ${
+              activeTab === "reviews"
+                ? "bg-pink-600 text-white shadow-md shadow-pink-200"
+                : "bg-white text-gray-700 hover:bg-pink-50 border border-gray-100"
+            }`}
+          >
+            <Star size={18} /> Customer Feedback ({reviewsList.length})
+          </button>
         </div>
 
-        {/* TAB 1: OVERVIEW */}
+        {/* TAB 1: OVERVIEW & MONGO AGGREGATION ANALYTICS */}
         {activeTab === "overview" && (
           <div className="space-y-8">
             {/* Stat Cards Grid */}
@@ -536,7 +676,7 @@ export function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-xs font-semibold uppercase">Total Products</p>
-                  <h3 className="text-3xl font-bold text-[#321f2b] mt-1">{products.length}</h3>
+                  <h3 className="text-3xl font-bold text-[#321f2b] mt-1">{analytics?.totalProducts || products.length}</h3>
                 </div>
               </div>
 
@@ -546,7 +686,7 @@ export function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-xs font-semibold uppercase">Total Services</p>
-                  <h3 className="text-3xl font-bold text-[#321f2b] mt-1">{services.length}</h3>
+                  <h3 className="text-3xl font-bold text-[#321f2b] mt-1">{analytics?.totalServices || services.length}</h3>
                 </div>
               </div>
 
@@ -571,82 +711,66 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* Quick Actions & Recent Orders */}
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-serif text-xl font-bold text-[#321f2b]">Recent Customer Bookings</h3>
-                  <button
-                    onClick={() => setActiveTab("bookings")}
-                    className="text-pink-600 text-xs font-bold hover:underline"
-                  >
-                    View All
-                  </button>
+            {/* MongoDB Aggregation Pipeline Analytics Breakdown */}
+            {analytics?.analytics?.productCategoryStats && (
+              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-4 flex items-center gap-2">
+                  <PieChart size={20} className="text-pink-600" /> MongoDB Aggregation Analytics (Category Breakdown)
+                </h3>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {analytics.analytics.productCategoryStats.map((item) => (
+                    <div key={item._id} className="p-4 rounded-2xl bg-pink-50/50 border border-pink-100">
+                      <p className="text-xs text-gray-500 uppercase font-bold">{item._id}</p>
+                      <h4 className="text-2xl font-bold text-pink-700 mt-1">{item.count} items</h4>
+                      <p className="text-xs text-gray-600 mt-1">Avg Price: ₹{Math.round(item.avgPrice || 0)}</p>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                {bookings.length === 0 ? (
-                  <p className="text-gray-400 text-sm text-center py-8">No appointment orders yet.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {bookings.slice(0, 4).map((b) => (
-                      <div
-                        key={b._id}
-                        className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/70 border border-gray-100"
-                      >
-                        <div>
-                          <p className="font-bold text-[#321f2b] text-sm">
-                            {b.customer?.name || "Customer"}
-                          </p>
-                          <p className="text-xs text-gray-500">{b.slot?.service?.name || "Service"}</p>
-                        </div>
-                        <div className="text-right">
-                          <span
-                            className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                              b.status === "confirmed"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : b.status === "cancelled"
-                                ? "bg-rose-100 text-rose-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {b.status}
-                          </span>
-                          <p className="text-xs font-semibold text-gray-700 mt-1">
-                            ₹{b.slot?.service?.price || 0}
-                          </p>
-                        </div>
+            {/* Recent Customer Orders */}
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-serif text-xl font-bold text-[#321f2b]">Recent Customer Bookings</h3>
+                <button onClick={() => setActiveTab("bookings")} className="text-pink-600 text-xs font-bold hover:underline">
+                  View All
+                </button>
+              </div>
+
+              {bookings.length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-8">No appointment orders yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {bookings.slice(0, 5).map((b) => (
+                    <div key={b._id} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50/70 border border-gray-100">
+                      <div>
+                        <p className="font-bold text-[#321f2b] text-sm">{b.customer?.name || "Customer"}</p>
+                        <p className="text-xs text-gray-500">{b.slot?.service?.name || "Service"}</p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Summary Box */}
-              <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4">
-                <h3 className="font-serif text-xl font-bold text-[#321f2b]">Admin Quick Stats</h3>
-                <div className="p-4 rounded-2xl bg-pink-50/60 border border-pink-100">
-                  <p className="text-xs text-gray-500 font-semibold">Confirmed Bookings</p>
-                  <p className="text-2xl font-bold text-pink-700 mt-1">{confirmedBookings}</p>
+                      <div className="text-right">
+                        <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                          b.status === "confirmed" ? "bg-emerald-100 text-emerald-800" : b.status === "cancelled" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
+                        }`}>
+                          {b.status}
+                        </span>
+                        <p className="text-xs font-semibold text-gray-700 mt-1">₹{b.slot?.service?.price || 0}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-
-                <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-100">
-                  <p className="text-xs text-gray-500 font-semibold">Available Unbooked Slots</p>
-                  <p className="text-2xl font-bold text-purple-700 mt-1">
-                    {slots.filter((s) => !s.isBooked).length}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* TAB 2: PRODUCT MANAGEMENT */}
+        {/* TAB 2: PRODUCT MANAGEMENT & MULTER FILE UPLOAD */}
         {activeTab === "products" && (
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Create Product Form */}
             <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm h-fit">
               <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-4 flex items-center gap-2">
-                <Plus size={20} className="text-pink-600" /> Add Boutique Product
+                <Plus size={20} className="text-pink-600" /> Add Product (URL or File Upload)
               </h3>
 
               <form onSubmit={handleCreateProduct} className="space-y-4">
@@ -660,7 +784,7 @@ export function AdminDashboard() {
                     placeholder="e.g. Royal Silk Zari Saree"
                     value={productForm.name}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -672,7 +796,7 @@ export function AdminDashboard() {
                     <select
                       value={productForm.category}
                       onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500"
                     >
                       <option value="Sarees">Sarees</option>
                       <option value="Lehengas">Lehengas</option>
@@ -695,71 +819,70 @@ export function AdminDashboard() {
                       placeholder="e.g. 8500"
                       value={productForm.price}
                       onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                      Fabric Material
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Banarasi Silk"
-                      value={productForm.fabric}
-                      onChange={(e) => setProductForm({ ...productForm, fabric: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                      Stock Qty
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={productForm.stock}
-                      onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                    />
-                  </div>
-                </div>
-
-                {/* Preset Image Picker */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                    Select Sample Image or Custom URL
+                {/* File Upload vs Image URL option */}
+                <div className="p-4 rounded-2xl bg-pink-50/50 border border-pink-100 space-y-3">
+                  <label className="block text-xs font-bold text-gray-700 uppercase flex items-center gap-1.5">
+                    <Upload size={14} className="text-pink-600" /> Upload Photo File from Device (Multer)
                   </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setProductFile(file);
+                        setFilePreview(URL.createObjectURL(file));
+                        setProductForm({ ...productForm, image: "" });
+                      } else {
+                        setProductFile(null);
+                        setFilePreview(null);
+                      }
+                    }}
+                    className="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-pink-600 file:text-white hover:file:bg-pink-700"
+                  />
 
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  {/* Live File Image Preview */}
+                  {filePreview && (
+                    <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-pink-200">
+                      <img src={filePreview} alt="Gallery Preview" className="w-14 h-14 object-cover rounded-lg border" />
+                      <div>
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Gallery Image Ready
+                        </span>
+                        <p className="text-xs text-gray-700 font-semibold mt-1 truncate max-w-[180px]">
+                          {productFile?.name}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-center text-xs text-gray-400 font-semibold my-1">— OR PICK SAMPLE BOUTIQUE PRESET —</div>
+
+                  <div className="flex flex-wrap gap-1.5">
                     {imagePresets.map((preset) => (
                       <button
                         type="button"
                         key={preset.label}
-                        onClick={() => setProductForm({ ...productForm, image: preset.url })}
-                        className={`text-xs px-2.5 py-1 rounded-lg border font-semibold flex items-center gap-1 transition ${
-                          productForm.image === preset.url
+                        onClick={() => {
+                          setProductForm({ ...productForm, image: preset.url });
+                          setProductFile(null);
+                          setFilePreview(null);
+                        }}
+                        className={`text-[11px] px-2 py-1 rounded-lg border font-semibold flex items-center gap-1 transition ${
+                          productForm.image === preset.url && !productFile
                             ? "bg-pink-600 text-white border-pink-600"
-                            : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                            : "bg-white text-gray-700 border-gray-200"
                         }`}
                       >
-                        {productForm.image === preset.url && <Check size={12} />}
                         {preset.label}
                       </button>
                     ))}
                   </div>
-
-                  <input
-                    type="text"
-                    required
-                    placeholder="https://..."
-                    value={productForm.image}
-                    onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs outline-none focus:border-pink-500"
-                  />
                 </div>
 
                 <div>
@@ -771,7 +894,7 @@ export function AdminDashboard() {
                     placeholder="Embroidery details, weaving info, care instructions..."
                     value={productForm.description}
                     onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -796,34 +919,20 @@ export function AdminDashboard() {
               ) : (
                 <div className="space-y-4">
                   {products.map((p) => (
-                    <div
-                      key={p._id}
-                      className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-pink-200 transition"
-                    >
+                    <div key={p._id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <img
-                          src={p.image}
-                          alt={p.name}
-                          className="w-16 h-16 rounded-xl object-cover border border-gray-200 shrink-0"
-                        />
+                        <img src={p.image} alt={p.name} className="w-16 h-16 rounded-xl object-cover border border-gray-200 shrink-0" />
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className="font-bold text-[#321f2b] text-base">{p.name}</h4>
-                            <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-                              {p.category}
-                            </span>
+                            <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-semibold">{p.category}</span>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Fabric: {p.fabric || "N/A"} | Stock: {p.stock || 10}
-                          </p>
+                          <p className="text-xs text-gray-500 mt-1">Fabric: {p.fabric || "N/A"} | Stock: {p.stock || 10}</p>
                           <p className="text-pink-600 font-bold text-sm mt-1">₹{p.price}</p>
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleDeleteProduct(p._id)}
-                        className="px-3.5 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0"
-                      >
+                      <button onClick={() => handleDeleteProduct(p._id)} className="px-3.5 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
                         <Trash2 size={16} /> Delete
                       </button>
                     </div>
@@ -837,7 +946,6 @@ export function AdminDashboard() {
         {/* TAB 3: SERVICES MANAGEMENT */}
         {activeTab === "services" && (
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Create Service Form */}
             <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm h-fit">
               <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-4 flex items-center gap-2">
                 <Plus size={20} className="text-pink-600" /> Add New Service
@@ -845,111 +953,43 @@ export function AdminDashboard() {
 
               <form onSubmit={handleCreateService} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                    Service Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Bridal Blouse Stitching"
-                    value={serviceForm.name}
-                    onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                  />
+                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Service Name *</label>
+                  <input type="text" required placeholder="e.g. Bridal Blouse Stitching" value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                    Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Describe custom embroidery, lining details, etc."
-                    value={serviceForm.description}
-                    onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                  />
+                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Description</label>
+                  <textarea rows={3} placeholder="Describe custom embroidery, lining details, etc." value={serviceForm.description} onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                      Duration (mins) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={15}
-                      value={serviceForm.duration}
-                      onChange={(e) => setServiceForm({ ...serviceForm, duration: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                    />
+                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Duration (mins) *</label>
+                    <input type="number" required min={15} value={serviceForm.duration} onChange={(e) => setServiceForm({ ...serviceForm, duration: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                      Price (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={0}
-                      placeholder="e.g. 1500"
-                      value={serviceForm.price}
-                      onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                    />
+                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Price (₹) *</label>
+                    <input type="number" required min={0} placeholder="e.g. 1500" value={serviceForm.price} onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingService}
-                  className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-pink-200 disabled:opacity-50"
-                >
+                <button type="submit" disabled={submittingService} className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-pink-200 disabled:opacity-50">
                   {submittingService ? "Saving..." : "Save Service to Database"}
                 </button>
               </form>
             </div>
 
-            {/* Services List */}
             <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">
-                Active Boutique Services ({services.length})
-              </h3>
-
-              {services.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">No services created yet.</div>
-              ) : (
-                <div className="space-y-4">
-                  {services.map((svc) => (
-                    <div
-                      key={svc._id}
-                      className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-pink-200 transition"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-[#321f2b] text-lg">{svc.name}</h4>
-                          <span className="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-                            {svc.duration} mins
-                          </span>
-                        </div>
-                        {svc.description && (
-                          <p className="text-gray-500 text-sm mt-1">{svc.description}</p>
-                        )}
-                        <p className="text-pink-600 font-bold text-lg mt-2">₹{svc.price}</p>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteService(svc._id)}
-                        className="px-3.5 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0"
-                      >
-                        <Trash2 size={16} /> Delete
-                      </button>
-                    </div>
-                  ))}
+              <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">Active Boutique Services ({services.length})</h3>
+              {services.map((svc) => (
+                <div key={svc._id} className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 flex justify-between items-center gap-4 mb-3">
+                  <div>
+                    <h4 className="font-bold text-[#321f2b] text-lg">{svc.name} ({svc.duration} mins)</h4>
+                    <p className="text-gray-500 text-sm mt-1">{svc.description}</p>
+                    <p className="text-pink-600 font-bold text-lg mt-1">₹{svc.price}</p>
+                  </div>
+                  <button onClick={() => handleDeleteService(svc._id)} className="px-3.5 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+                    <Trash2 size={16} /> Delete
+                  </button>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )}
@@ -957,7 +997,6 @@ export function AdminDashboard() {
         {/* TAB 4: SLOTS SCHEDULE MANAGEMENT */}
         {activeTab === "slots" && (
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Create Slot Form */}
             <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm h-fit">
               <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-4 flex items-center gap-2">
                 <Plus size={20} className="text-pink-600" /> Create Appointment Slot
@@ -965,229 +1004,294 @@ export function AdminDashboard() {
 
               <form onSubmit={handleCreateSlot} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                    Select Service *
-                  </label>
-                  <select
-                    required
-                    value={slotForm.service}
-                    onChange={(e) => setSlotForm({ ...slotForm, service: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                  >
+                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Select Service *</label>
+                  <select required value={slotForm.service} onChange={(e) => setSlotForm({ ...slotForm, service: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500">
                     <option value="">-- Choose Service --</option>
                     {services.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.name} (₹{s.price})
-                      </option>
+                      <option key={s._id} value={s._id}>{s.name} (₹{s.price})</option>
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                    Appointment Date *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={slotForm.date}
-                    onChange={(e) => setSlotForm({ ...slotForm, date: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                  />
+                  <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Appointment Date *</label>
+                  <input type="date" required value={slotForm.date} onChange={(e) => setSlotForm({ ...slotForm, date: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                      Start Time *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 10:00 AM"
-                      value={slotForm.startTime}
-                      onChange={(e) => setSlotForm({ ...slotForm, startTime: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                    />
+                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">Start Time *</label>
+                    <input type="text" required placeholder="e.g. 10:00 AM" value={slotForm.startTime} onChange={(e) => setSlotForm({ ...slotForm, startTime: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">
-                      End Time *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 11:00 AM"
-                      value={slotForm.endTime}
-                      onChange={(e) => setSlotForm({ ...slotForm, endTime: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100"
-                    />
+                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase">End Time *</label>
+                    <input type="text" required placeholder="e.g. 11:00 AM" value={slotForm.endTime} onChange={(e) => setSlotForm({ ...slotForm, endTime: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-pink-500" />
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={submittingSlot}
-                  className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-pink-200 disabled:opacity-50"
-                >
+                <button type="submit" disabled={submittingSlot} className="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-pink-200 disabled:opacity-50">
                   {submittingSlot ? "Creating Slot..." : "Add Slot to Database"}
                 </button>
               </form>
             </div>
 
-            {/* Slots List */}
             <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-              <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">
-                Scheduled Slots ({slots.length})
-              </h3>
-
-              {slots.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">No appointment slots created yet.</div>
-              ) : (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {slots.map((s) => (
-                    <div
-                      key={s._id}
-                      className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 flex flex-col justify-between gap-3"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span
-                            className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
-                              s.isBooked
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-emerald-100 text-emerald-800"
-                            }`}
-                          >
-                            {s.isBooked ? "Booked" : "Available"}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteSlot(s._id)}
-                            className="text-rose-500 hover:text-rose-700 text-xs font-bold"
-                          >
-                            Delete
-                          </button>
-                        </div>
-
-                        <h4 className="font-bold text-[#321f2b]">
-                          {s.service?.name || "Service N/A"}
-                        </h4>
-
-                        <div className="mt-2 text-xs text-gray-500 space-y-1">
-                          <p className="flex items-center gap-1.5">
-                            <CalendarDays size={14} className="text-pink-600" />
-                            {new Date(s.date).toLocaleDateString("en-IN", {
-                              weekday: "short",
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                          <p className="flex items-center gap-1.5">
-                            <Clock size={14} className="text-pink-600" />
-                            {s.startTime} - {s.endTime}
-                          </p>
-                        </div>
-                      </div>
+              <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">Scheduled Slots ({slots.length})</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {slots.map((s) => (
+                  <div key={s._id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${s.isBooked ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+                        {s.isBooked ? "Booked" : "Available"}
+                      </span>
+                      <button onClick={() => handleDeleteSlot(s._id)} className="text-rose-500 hover:text-rose-700 text-xs font-bold">Delete</button>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <h4 className="font-bold text-[#321f2b]">{s.service?.name || "Service"}</h4>
+                    <p className="text-xs text-gray-500 mt-1">{new Date(s.date).toLocaleDateString("en-IN")} | {s.startTime} - {s.endTime}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {/* TAB 5: CUSTOMER BOOKING ORDERS */}
         {activeTab === "bookings" && (
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">
-              Customer Appointment Orders ({bookings.length})
-            </h3>
+          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-6">
+            <h3 className="font-serif text-xl font-bold text-[#321f2b]">Customer Appointment Orders ({bookings.length})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100 text-xs uppercase text-gray-400 font-bold">
+                    <th className="py-3 px-4">Customer</th>
+                    <th className="py-3 px-4">Service</th>
+                    <th className="py-3 px-4">Slot Date & Time</th>
+                    <th className="py-3 px-4">Price</th>
+                    <th className="py-3 px-4">Appointment</th>
+                    <th className="py-3 px-4">Payment Method</th>
+                    <th className="py-3 px-4">Live Garment Progress</th>
+                    <th className="py-3 px-4">Measurements</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {bookings.map((b) => {
+                    const m = b.measurements || b.customer?.measurements || {};
+                    const hasMeasurements = m.bust || m.waist || m.hips || m.shoulder;
+                    const pm = b.paymentMethod || "cod";
 
-            {bookings.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">No customer bookings placed yet.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-xs uppercase text-gray-400 font-bold">
-                      <th className="py-3 px-4">Customer</th>
-                      <th className="py-3 px-4">Service</th>
-                      <th className="py-3 px-4">Slot Date & Time</th>
-                      <th className="py-3 px-4">Price</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
-                    {bookings.map((b) => (
+                    return (
                       <tr key={b._id} className="hover:bg-pink-50/30 transition">
                         <td className="py-4 px-4">
                           <p className="font-bold text-[#321f2b]">{b.customer?.name || "Customer"}</p>
                           <p className="text-xs text-gray-400">{b.customer?.email}</p>
+                          {b.customer?.phone && (
+                            <p className="text-xs text-pink-600 font-medium">{b.customer.phone}</p>
+                          )}
                         </td>
-
-                        <td className="py-4 px-4 font-semibold text-gray-700">
-                          {b.slot?.service?.name || "Service N/A"}
-                        </td>
-
+                        <td className="py-4 px-4 font-semibold text-gray-700">{b.slot?.service?.name || "Service N/A"}</td>
                         <td className="py-4 px-4 text-xs text-gray-600">
-                          <p className="font-semibold">
-                            {b.slot?.date
-                              ? new Date(b.slot.date).toLocaleDateString("en-IN", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                              : "N/A"}
-                          </p>
-                          <p className="text-gray-400">
-                            {b.slot?.startTime} - {b.slot?.endTime}
-                          </p>
+                          <p className="font-semibold">{b.slot?.date ? new Date(b.slot.date).toLocaleDateString("en-IN") : "N/A"}</p>
+                          <p className="text-gray-400">{b.slot?.startTime} - {b.slot?.endTime}</p>
                         </td>
-
-                        <td className="py-4 px-4 font-bold text-pink-600">
-                          ₹{b.slot?.service?.price || 0}
-                        </td>
-
+                        <td className="py-4 px-4 font-bold text-pink-600">₹{b.slot?.service?.price || 0}</td>
                         <td className="py-4 px-4">
-                          <span
-                            className={`inline-block text-xs px-3 py-1 rounded-full font-bold ${
-                              b.status === "confirmed"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : b.status === "cancelled"
-                                ? "bg-rose-100 text-rose-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
+                          <span className={`inline-block text-xs px-3 py-1 rounded-full font-bold ${b.status === "confirmed" ? "bg-emerald-100 text-emerald-800" : b.status === "cancelled" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"}`}>
                             {b.status}
                           </span>
                         </td>
-
+                        <td className="py-4 px-4">
+                          <span className={`inline-block text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                            pm === "upi" ? "bg-indigo-100 text-indigo-800" : pm === "card" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                          }`}>
+                            {pm === "upi" ? "UPI / GPay" : pm === "card" ? "Card Online" : "Cash / COD"}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <select
+                            value={b.garmentStatus || "pending"}
+                            onChange={(e) => handleUpdateGarmentStatus(b._id, e.target.value)}
+                            className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-pink-200 bg-pink-50/50 text-pink-800 focus:outline-none focus:ring-2 focus:ring-pink-500 cursor-pointer"
+                          >
+                            <option value="pending">1. Requested</option>
+                            <option value="approved">2. Pattern Approved</option>
+                            <option value="stitching">3. In Stitching</option>
+                            <option value="ready_for_trial">4. Ready for Trial</option>
+                            <option value="completed">5. Order Completed</option>
+                          </select>
+                        </td>
+                        <td className="py-4 px-4">
+                          <button
+                            onClick={() => setSelectedMeasurementBooking(b)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                              hasMeasurements
+                                ? "bg-pink-100 text-pink-700 hover:bg-pink-200"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                          >
+                            <Ruler size={14} />
+                            {hasMeasurements ? "View Specs" : "No Specs"}
+                          </button>
+                        </td>
                         <td className="py-4 px-4 text-right space-x-2">
                           {b.status !== "confirmed" && (
-                            <button
-                              onClick={() => handleUpdateBookingStatus(b._id, "confirmed")}
-                              className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition"
-                            >
-                              Confirm
-                            </button>
+                            <button onClick={() => handleUpdateBookingStatus(b._id, "confirmed")} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold">Confirm</button>
                           )}
-
                           {b.status !== "cancelled" && (
-                            <button
-                              onClick={() => handleUpdateBookingStatus(b._id, "cancelled")}
-                              className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition"
-                            >
-                              Cancel
-                            </button>
+                            <button onClick={() => handleUpdateBookingStatus(b._id, "cancelled")} className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold">Cancel</button>
                           )}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Body Measurements Modal */}
+            {selectedMeasurementBooking && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl relative border border-pink-100">
+                  <button
+                    onClick={() => setSelectedMeasurementBooking(null)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold"
+                  >
+                    &times;
+                  </button>
+
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2.5 bg-pink-100 text-pink-600 rounded-xl">
+                      <Ruler size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-serif text-xl font-bold text-[#321f2b]">Customer Fitting Specs</h4>
+                      <p className="text-xs text-gray-500">
+                        {selectedMeasurementBooking.customer?.name} ({selectedMeasurementBooking.customer?.email})
+                      </p>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const m =
+                      selectedMeasurementBooking.measurements ||
+                      selectedMeasurementBooking.customer?.measurements ||
+                      {};
+                    return (
+                      <div className="space-y-4 text-sm text-gray-700">
+                        <div className="grid grid-cols-2 gap-3 p-4 bg-pink-50/50 rounded-2xl border border-pink-100">
+                          <div><span className="text-xs text-gray-400 font-bold block uppercase">Bust/Chest:</span> <strong className="text-pink-700">{m.bust || "N/A"} in</strong></div>
+                          <div><span className="text-xs text-gray-400 font-bold block uppercase">Waist:</span> <strong className="text-pink-700">{m.waist || "N/A"} in</strong></div>
+                          <div><span className="text-xs text-gray-400 font-bold block uppercase">Hips:</span> <strong className="text-pink-700">{m.hips || "N/A"} in</strong></div>
+                          <div><span className="text-xs text-gray-400 font-bold block uppercase">Shoulder Width:</span> <strong className="text-pink-700">{m.shoulder || "N/A"} in</strong></div>
+                          <div><span className="text-xs text-gray-400 font-bold block uppercase">Sleeve Length:</span> <strong className="text-pink-700">{m.sleeveLength || "N/A"} in</strong></div>
+                          <div><span className="text-xs text-gray-400 font-bold block uppercase">Garment Length:</span> <strong className="text-pink-700">{m.garmentLength || "N/A"} in</strong></div>
+                        </div>
+
+                        {m.notes && (
+                          <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <span className="text-xs text-gray-400 font-bold uppercase block mb-1">Styling Notes:</span>
+                            <p className="text-xs text-gray-600 italic">"{m.notes}"</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={() => setSelectedMeasurementBooking(null)}
+                      className="px-5 py-2.5 bg-pink-600 text-white rounded-xl text-xs font-semibold hover:bg-pink-700 transition"
+                    >
+                      Close Specs
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 6: USER ACCOUNTS MANAGEMENT */}
+        {activeTab === "users" && (
+          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">User Accounts & Roles ({usersList.length})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100 text-xs uppercase text-gray-400 font-bold">
+                    <th className="py-3 px-4">User Name</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Role</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {usersList.map((u) => (
+                    <tr key={u._id} className="hover:bg-pink-50/30 transition">
+                      <td className="py-4 px-4 font-bold text-[#321f2b]">{u.name}</td>
+                      <td className="py-4 px-4 text-gray-600">{u.email}</td>
+                      <td className="py-4 px-4">
+                        <span className={`inline-block text-xs px-3 py-1 rounded-full font-bold ${u.role === "admin" ? "bg-purple-100 text-purple-800" : "bg-gray-100 text-gray-700"}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right space-x-2">
+                        {u.role === "customer" ? (
+                          <button onClick={() => handleUpdateUserRole(u._id, "admin")} className="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-xs font-semibold">Promote to Admin</button>
+                        ) : (
+                          <button onClick={() => handleUpdateUserRole(u._id, "customer")} className="px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-xs font-semibold">Demote to Customer</button>
+                        )}
+                        <button onClick={() => handleDeleteUser(u._id)} className="px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold">Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: CUSTOMER REVIEWS & FEEDBACK MANAGEMENT */}
+        {activeTab === "reviews" && (
+          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <h3 className="font-serif text-xl font-bold text-[#321f2b] mb-6">Customer Ratings & Feedback ({reviewsList.length})</h3>
+            {reviewsList.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-12">No customer reviews or feedback submitted yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {reviewsList.map((rev) => (
+                  <div key={rev._id} className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-[#321f2b] text-base">{rev.customer?.name || "Customer"}</span>
+                        <span className="text-xs text-gray-400">{rev.customer?.email}</span>
+                        <span className="text-xs text-gray-400">| {new Date(rev.createdAt).toLocaleDateString("en-IN")}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-amber-400 mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={i < rev.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                          />
+                        ))}
+                        <span className="text-xs font-bold text-gray-700 ml-1">({rev.rating}/5)</span>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mt-2 italic">"{rev.comment}"</p>
+                      {rev.productName && (
+                        <span className="inline-block mt-2 text-[10px] font-bold px-2 py-0.5 bg-pink-100 text-pink-700 rounded-full">
+                          Service/Product: {rev.productName}
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteReview(rev._id)}
+                      className="px-3.5 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0"
+                    >
+                      <Trash2 size={16} /> Delete Feedback
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -1196,4 +1300,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
 export default AdminDashboard;

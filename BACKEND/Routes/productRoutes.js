@@ -8,14 +8,32 @@ const {
   deleteProduct,
 } = require("../controller/productController");
 const { verifyToken, verifyAdmin } = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
+const { productRules, validate } = require("../middleware/validationMiddleware");
 
 // Public routes
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 
-// Admin routes
-router.post("/", verifyToken, verifyAdmin, createProduct);
-router.put("/:id", verifyToken, verifyAdmin, updateProduct);
+// Admin routes (Supports Multer file upload & input validation)
+router.post(
+  "/",
+  verifyToken,
+  verifyAdmin,
+  upload.single("image"),
+  productRules,
+  validate,
+  createProduct
+);
+
+router.put(
+  "/:id",
+  verifyToken,
+  verifyAdmin,
+  upload.single("image"),
+  updateProduct
+);
+
 router.delete("/:id", verifyToken, verifyAdmin, deleteProduct);
 
 module.exports = router;

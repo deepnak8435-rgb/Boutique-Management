@@ -1,6 +1,6 @@
 const Product = require("../models/Product");
 
-// Create Product (Admin)
+// Create Product (Admin - supports Multer file upload or Image URL)
 async function createProduct(req, res) {
   try {
     const { name, category, price, description, image, fabric, stock, featured } = req.body;
@@ -9,12 +9,22 @@ async function createProduct(req, res) {
       return res.status(400).json({ error: "Name, category, and price are required." });
     }
 
+    // Determine image source: Multer uploaded file path vs URL string
+    let imageUrl = "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80";
+    if (req.file) {
+      const protocol = req.protocol || "http";
+      const host = req.get("host") || "localhost:5000";
+      imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+    } else if (image && typeof image === "string" && image.trim() !== "") {
+      imageUrl = image.trim();
+    }
+
     const newProduct = new Product({
       name,
       category,
-      price,
+      price: Number(price),
       description,
-      image: image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
+      image: imageUrl,
       fabric: fabric || "Silk",
       stock: stock !== undefined ? Number(stock) : 10,
       featured: Boolean(featured),
@@ -27,7 +37,7 @@ async function createProduct(req, res) {
   }
 }
 
-// Get All Products (with optional category filter)
+// Get All Products (with optional category & search filter)
 async function getAllProducts(req, res) {
   try {
     const { category, search } = req.query;
@@ -62,9 +72,16 @@ async function getProductById(req, res) {
 // Update Product (Admin)
 async function updateProduct(req, res) {
   try {
+    let updateData = { ...req.body };
+    if (req.file) {
+      const protocol = req.protocol || "http";
+      const host = req.get("host") || "localhost:5000";
+      updateData.image = `${protocol}://${host}/uploads/${req.file.filename}`;
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     if (!updatedProduct) return res.status(404).json({ error: "Product not found" });

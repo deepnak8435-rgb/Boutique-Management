@@ -1,4 +1,5 @@
 const Service = require("../models/Service");
+const Slot = require("../models/Slot");
 
 // Create Service
 async function createService(req, res) {
@@ -6,13 +7,18 @@ async function createService(req, res) {
     const { name, description, duration, price } = req.body;
 
     // Basic validation
-    if (!name || !duration || price === undefined) {
+    if (!name || duration === undefined || price === undefined) {
       return res.status(400).json({
         error: "Name, duration and price are required",
       });
     }
 
-    const newService = new Service({name, description, duration, price,});
+    const newService = new Service({
+      name,
+      description,
+      duration: Number(duration),
+      price: Number(price),
+    });
     const savedService = await newService.save();
     res.status(201).json({
       message: "Service created successfully",
@@ -22,7 +28,8 @@ async function createService(req, res) {
     res.status(500).json({
       error: err.message,
     });
-  }}
+  }
+}
 
 // Get All Services
 async function getAllServices(req, res) {
@@ -33,7 +40,8 @@ async function getAllServices(req, res) {
     res.status(500).json({
       error: err.message,
     });
-  }}
+  }
+}
 
 // Get Service By ID
 async function getServiceById(req, res) {
@@ -52,7 +60,12 @@ async function updateService(req, res) {
     const { name, description, duration, price } = req.body;
     const updatedService = await Service.findByIdAndUpdate(
       req.params.id,
-      { name, description, duration, price },
+      {
+        name,
+        description,
+        duration: duration !== undefined ? Number(duration) : undefined,
+        price: price !== undefined ? Number(price) : undefined,
+      },
       { new: true, runValidators: true }
     );
     if (!updatedService) {
@@ -70,10 +83,15 @@ async function updateService(req, res) {
 // Delete Service
 async function deleteService(req, res) {
   try {
-    const deletedService = await Service.findByIdAndDelete(req.params.id);
+    const serviceId = req.params.id;
+    const deletedService = await Service.findByIdAndDelete(serviceId);
     if (!deletedService) {
       return res.status(404).json({ error: "Service not found" });
     }
+
+    // Clean up unbooked slots associated with this deleted service
+    await Slot.deleteMany({ service: serviceId, isBooked: false });
+
     res.status(200).json({ message: "Service deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });

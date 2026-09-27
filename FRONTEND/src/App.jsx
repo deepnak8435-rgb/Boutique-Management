@@ -10,6 +10,7 @@ import Booking from "./Pages/BookSlots";
 import Slots from "./Pages/Slot";
 import MyBookings from "./Pages/MyBookings";
 import AdminDashboard from "./Pages/AdminDashboard";
+import Profile from "./Pages/Profile";
 
 function App() {
   return (
@@ -22,6 +23,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/services" element={<Services />} />
         <Route path="/products" element={<Products />} />
+
+        {/* Customer Profile & Body Measurements */}
+        <Route path="/profile" element={<Profile />} />
 
         {/* Select available slot */}
         <Route path="/slots/:serviceId" element={<Slots />} />

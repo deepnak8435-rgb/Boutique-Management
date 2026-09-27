@@ -71,13 +71,23 @@ async function getSlotById(req, res) {
   }
 }
 
-// Get Available Slots By Service ID (Auto-generates if none exist!)
+// Get Available Slots By Service ID (Auto-generates upcoming slots if none exist!)
 async function getSlotsByServiceId(req, res) {
   try {
     const { serviceId } = req.params;
-    let slots = await Slot.find({ service: serviceId, isBooked: false }).populate("service");
 
-    // If no available slots exist for this service, auto-generate them!
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    let slots = await Slot.find({
+      service: serviceId,
+      isBooked: false,
+      date: { $gte: startOfToday },
+    })
+      .populate("service")
+      .sort({ date: 1 });
+
+    // If no future available slots exist for this service, auto-generate them!
     if (slots.length === 0) {
       slots = await autoGenerateSlotsForServiceId(serviceId);
     }

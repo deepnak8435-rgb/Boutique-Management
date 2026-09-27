@@ -123,6 +123,17 @@ function Navbar() {
                       My Bookings
                     </Link>
 
+                    <Link
+                      to="/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3
+                                 text-gray-700 hover:bg-pink-50
+                                 hover:text-pink-600 transition"
+                    >
+                      <UserCircle size={18} />
+                      My Profile
+                    </Link>
+
                     <div className="border-t my-1"></div>
 
                     <button

@@ -1,8 +1,19 @@
 
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {Scissors,CalendarDays, Sparkles, Ruler, Heart, ArrowRight,} from "lucide-react";
+import { Scissors, CalendarDays, Sparkles, Ruler, Heart, ArrowRight, Star } from "lucide-react";
 
 function Home() {
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/reviews")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setReviews(data);
+      })
+      .catch((err) => console.error("Error loading home reviews:", err));
+  }, []);
   return (
     <div className="bg-[#fffafc] text-[#321f2b]">
 
@@ -527,6 +538,50 @@ function Home() {
 
       </section>
 
+      {/* =====================================================
+          CUSTOMER REVIEWS & TESTIMONIALS SECTION
+      ===================================================== */}
+      {reviews.length > 0 && (
+        <section className="py-20 px-6 bg-white border-t border-pink-100">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center max-w-2xl mx-auto mb-14">
+              <p className="uppercase tracking-[0.25em] text-pink-600 text-xs font-semibold">
+                Customer Testimonials
+              </p>
+              <h2 className="mt-3 font-serif text-4xl md:text-5xl text-[#321f2b]">
+                Loved by Our Clients
+              </h2>
+              <p className="mt-4 text-gray-500 leading-7">
+                Read real ratings and experiences shared by our boutique customers.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {reviews.slice(0, 6).map((rev) => (
+                <div key={rev._id} className="p-6 rounded-3xl bg-pink-50/50 border border-pink-100 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1 text-amber-400 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          className={i < rev.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed italic mb-6">"{rev.comment}"</p>
+                  </div>
+
+                  <div className="pt-4 border-t border-pink-100 flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#321f2b]">{rev.customer?.name || "Boutique Client"}</span>
+                    <span className="text-gray-400">{new Date(rev.createdAt).toLocaleDateString("en-IN")}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* =====================================================
           FINAL CTA
