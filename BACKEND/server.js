@@ -3,9 +3,9 @@ const express = require("express");
 const mongoose=require('mongoose');
 const cors=require('cors')
 // loads the .env file into process.env
-require("dotenv").config();
-
 const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
 const serviceRouter=require("./Routes/serviceRoutes")
 const slotRoutes=require('./Routes/slotRoutes')
 const bookingRoutes=require("./Routes/BookingRoute")
@@ -25,7 +25,8 @@ app.use(cors())
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Connect to mongodb
-mongoose.connect(process.env.MONGO_URI)
+const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/boutique_management";
+mongoose.connect(mongoUri)
 .then(()=>console.log('mongodb is connected successfully'))
 .catch((err)=>console.log('mongodb connection error',err))
 

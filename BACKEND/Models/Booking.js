@@ -1,4 +1,5 @@
-const mongoose =require('mongoose');
+const mongoose = require('mongoose');
+
 const bookingSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -10,9 +11,38 @@ const bookingSchema = new mongoose.Schema({
     ref: "Slot",
     required: true,
   },
+  orderType: {
+    type: String,
+    enum: ["confirmed", "7_day_hold"],
+    default: "confirmed",
+  },
+  holdExpiresAt: {
+    type: Date,
+  },
+  referenceImage: {
+    type: String,
+    default: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=800&q=80",
+  },
+  fabricName: {
+    type: String,
+    default: "Royal Chiffon Silk",
+  },
+  fabricDetails: {
+    flow: { type: String, default: "Fluid & Soft Drape" },
+    texture: { type: String, default: "Silky Smooth" },
+    dyeable: { type: Boolean, default: true },
+    careInstructions: { type: String, default: "Dry Wash Only" },
+    suitableFor: { type: String, default: "Bridal & Partywear" },
+  },
+  selectedServices: [
+    {
+      name: { type: String },
+      price: { type: Number },
+    },
+  ],
   status: {
     type: String,
-    enum: ["pending", "confirmed", "cancelled"],
+    enum: ["pending", "confirmed", "cancelled", "on_hold"],
     default: "pending",
   },
   garmentStatus: {
@@ -24,6 +54,25 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     enum: ["upi", "card", "cod"],
     default: "cod",
+  },
+  advanceAmount: {
+    type: Number,
+    default: 500,
+  },
+  totalAmount: {
+    type: Number,
+    default: 1500,
+  },
+  remainingBalance: {
+    type: Number,
+    default: 1000,
+  },
+  advancePaid: {
+    type: Boolean,
+    default: false,
+  },
+  estimatedDeliveryDate: {
+    type: Date,
   },
   measurements: {
     bust: { type: String, default: "" },
@@ -39,4 +88,5 @@ const bookingSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
 module.exports = mongoose.model("Booking", bookingSchema);

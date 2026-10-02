@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createSlot,
   getAllSlots,
+  getSlotsByDate,
   getSlotById,
   getSlotsByServiceId,
   generateSlotsEndpoint,
@@ -17,6 +18,8 @@ router.post("/", verifyToken, verifyAdmin, createSlot);
 router.post("/generate/:serviceId", generateSlotsEndpoint);
 // Customer gets available slots
 router.get("/", getAllSlots);
+// Customer gets slots and real-time daily customer count by specific date
+router.get("/date/:dateStr", getSlotsByDate);
 // Admin gets all slots (all dates, booked & available)
 router.get("/admin/all", verifyToken, verifyAdmin, getAllSlotsAdmin);
 // Customer gets available slots by service

@@ -4,7 +4,7 @@ const slotSchema = new mongoose.Schema({
   service: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Service",
-    required: true,
+    required: false,
   },
 
   date: {

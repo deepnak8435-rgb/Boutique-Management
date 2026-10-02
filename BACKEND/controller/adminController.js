@@ -51,19 +51,22 @@ async function getDashboardStats(req, res) {
       ]),
     ]);
 
-    const pendingBookings = allBookings.filter(
-      (b) => b.status === "pending",
-    ).length;
-    const confirmedBookings = allBookings.filter(
-      (b) => b.status === "confirmed",
-    ).length;
-    const cancelledBookings = allBookings.filter(
-      (b) => b.status === "cancelled",
-    ).length;
+    const pendingBookings = allBookings.filter((b) => b.status === "pending").length;
+    const confirmedBookings = allBookings.filter((b) => b.status === "confirmed").length;
+    const cancelledBookings = allBookings.filter((b) => b.status === "cancelled").length;
+    const holdOrdersCount = allBookings.filter((b) => b.status === "on_hold" || b.orderType === "7_day_hold").length;
 
     const totalRevenue = allBookings
       .filter((b) => b.status === "confirmed")
-      .reduce((sum, b) => sum + (b.slot?.service?.price || 0), 0);
+      .reduce((sum, b) => sum + (b.totalAmount || b.slot?.service?.price || 1500), 0);
+
+    const totalAdvanceCollected = allBookings
+      .filter((b) => b.status === "confirmed" && b.advancePaid)
+      .reduce((sum, b) => sum + (b.advanceAmount || 500), 0);
+
+    const totalRemainingBalance = allBookings
+      .filter((b) => b.status === "confirmed")
+      .reduce((sum, b) => sum + (b.remainingBalance || 0), 0);
 
     res.status(200).json({
       totalProducts,
@@ -74,7 +77,10 @@ async function getDashboardStats(req, res) {
       pendingBookings,
       confirmedBookings,
       cancelledBookings,
+      holdOrdersCount,
       totalRevenue,
+      totalAdvanceCollected,
+      totalRemainingBalance,
       recentBookings: allBookings.slice(0, 5),
       analytics: {
         productCategoryStats,

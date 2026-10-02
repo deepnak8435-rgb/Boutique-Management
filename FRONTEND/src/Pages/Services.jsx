@@ -13,15 +13,11 @@ function Services() {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch(
-          "http://localhost:5000/api/services"
-        );
+        const res = await fetch("http://localhost:5000/api/services");
 
         const data = await res.json();
         if (!res.ok) {
-          throw new Error(
-            data.error || "Failed to load services"
-          );
+          throw new Error(data.error || "Failed to load services");
         }
 
         setServices(data);
@@ -37,15 +33,13 @@ function Services() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#fffafc]">
+    <div className="min-h-screen bg-[#FAF6F0] text-[#38220F]">
 
-      {/* =====================================================
-          HERO
-      ===================================================== */}
+      {/* HERO */}
       <section
         className="
           relative
-          min-h-[430px]
+          min-h-[420px]
           flex
           items-center
           bg-cover
@@ -54,8 +48,8 @@ function Services() {
         style={{
           backgroundImage: `
             linear-gradient(
-              rgba(50, 31, 43, 0.82),
-              rgba(50, 31, 43, 0.65)
+              rgba(42, 24, 16, 0.88),
+              rgba(42, 24, 16, 0.75)
             ),
             url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1800&q=85")
           `,
@@ -67,16 +61,16 @@ function Services() {
           <div className="max-w-2xl text-white">
 
             <div className="flex items-center gap-3 mb-5">
-              <span className="w-12 h-[1px] bg-pink-300"></span>
+              <span className="w-12 h-[1px] bg-[#E5D9CC]"></span>
 
               <p className="
                 uppercase
                 tracking-[0.3em]
-                text-pink-200
+                text-[#E5D9CC]
                 text-xs
                 font-semibold
               ">
-                Dewani Boutique
+                Dewani Haute Atelier
               </p>
             </div>
 
@@ -85,21 +79,20 @@ function Services() {
               text-5xl
               md:text-6xl
               leading-tight
+              font-medium
             ">
-              Our Services
+              Atelier Fitting Services
             </h1>
 
             <p className="
               mt-5
-              text-white/80
+              text-white/85
               text-base
               md:text-lg
               leading-8
               max-w-xl
             ">
-              From custom tailoring to careful alterations,
-              every service is designed to give you a beautiful,
-              comfortable and confident fit.
+              Select a specialized tailoring service below to view real-time available appointment slots and reserve your custom fitting session.
             </p>
 
           </div>
@@ -109,9 +102,7 @@ function Services() {
       </section>
 
 
-      {/* =====================================================
-          SERVICES CONTENT
-      ===================================================== */}
+      {/* SERVICES CONTENT */}
       <section className="py-20 px-6">
 
         <div className="max-w-7xl mx-auto">
@@ -122,11 +113,11 @@ function Services() {
             <p className="
               uppercase
               tracking-[0.25em]
-              text-pink-600
+              text-[#8B4513]
               text-xs
-              font-semibold
+              font-bold
             ">
-              What We Offer
+              Direct Slot Booking
             </p>
 
             <h2 className="
@@ -134,18 +125,18 @@ function Services() {
               font-serif
               text-4xl
               md:text-5xl
-              text-[#321f2b]
+              text-[#38220F]
             ">
-              Services made for you
+              Choose Service & Book Available Slot
             </h2>
 
             <p className="
               mt-4
-              text-gray-500
+              text-stone-600
               leading-7
+              text-sm
             ">
-              Choose the service that suits your needs and
-              reserve a convenient appointment with our team.
+              Click "Select Available Slot" to pick your date and time window with our master tailoring team.
             </p>
 
           </div>
@@ -165,14 +156,14 @@ function Services() {
                 w-10
                 h-10
                 border-4
-                border-pink-100
-                border-t-pink-600
+                border-[#E5D9CC]
+                border-t-[#8B4513]
                 rounded-full
                 animate-spin
               "></div>
 
-              <p className="mt-4 text-gray-500">
-                Loading services...
+              <p className="mt-4 text-stone-500 font-medium text-sm">
+                Loading atelier services...
               </p>
 
             </div>
@@ -185,13 +176,15 @@ function Services() {
               max-w-xl
               mx-auto
               text-center
-              bg-red-50
+              bg-rose-50
               border
-              border-red-100
-              rounded-xl
+              border-rose-200
+              rounded-2xl
               px-6
               py-5
-              text-red-600
+              text-rose-700
+              font-semibold
+              text-sm
             ">
               {error}
             </div>
@@ -204,27 +197,27 @@ function Services() {
               text-center
               py-20
               bg-white
-              rounded-2xl
+              rounded-3xl
               border
-              border-gray-100
+              border-[#E5D9CC]
             ">
 
               <Scissors
                 size={40}
-                className="mx-auto text-pink-400"
+                className="mx-auto text-[#8B4513]"
               />
 
               <h3 className="
                 mt-4
                 font-serif
                 text-2xl
-                text-[#321f2b]
+                text-[#38220F]
               ">
                 No services available
               </h3>
 
-              <p className="mt-2 text-gray-500">
-                Our services will be available soon.
+              <p className="mt-2 text-stone-500 text-sm">
+                Our services will be available soon. Add services from the Admin Panel.
               </p>
 
             </div>
@@ -238,7 +231,7 @@ function Services() {
               grid
               sm:grid-cols-2
               lg:grid-cols-3
-              gap-7
+              gap-8
             ">
 
               {services.map((service) => (
@@ -248,198 +241,203 @@ function Services() {
                   className="
                     group
                     bg-white
-                    rounded-2xl
+                    rounded-3xl
                     overflow-hidden
                     border
-                    border-gray-100
+                    border-[#E5D9CC]
                     shadow-sm
                     hover:shadow-xl
                     transition
                     duration-300
+                    flex flex-col justify-between
                   "
                 >
 
-                  {/* Image / Visual Header */}
-                  <div
-                    className="
-                      relative
-                      h-48
-                      bg-cover
-                      bg-center
-                    "
-                    style={{
-                      backgroundImage: `
-                        linear-gradient(
-                          rgba(50, 31, 43, 0.25),
-                          rgba(50, 31, 43, 0.35)
-                        ),
-                        url("https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=80")
-                      `,
-                    }}
-                  >
+                  {/* Visual Header */}
+                  <div>
+                    <div
+                      className="
+                        relative
+                        h-48
+                        bg-cover
+                        bg-center
+                      "
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(
+                            rgba(42, 24, 16, 0.35),
+                            rgba(42, 24, 16, 0.55)
+                          ),
+                          url("https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=80")
+                        `,
+                      }}
+                    >
 
-                    <div className="
-                      absolute
-                      top-5
-                      left-5
-                      w-11
-                      h-11
-                      rounded-full
-                      bg-white/95
-                      flex
-                      items-center
-                      justify-center
-                      text-pink-600
-                      shadow-md
-                    ">
-                      <Scissors size={21} />
-                    </div>
-
-                    <div className="
-                      absolute
-                      bottom-5
-                      left-5
-                      right-5
-                    ">
-
-                      <span className="
-                        inline-block
-                        bg-pink-600
-                        text-white
-                        text-xs
-                        font-semibold
-                        px-3
-                        py-1.5
-                        rounded-full
+                      <div className="
+                        absolute
+                        top-5
+                        left-5
+                        w-11
+                        h-11
+                        rounded-2xl
+                        bg-white/95
+                        flex
+                        items-center
+                        justify-center
+                        text-[#8B4513]
+                        shadow-md
                       ">
-                        Boutique Service
-                      </span>
+                        <Scissors size={21} />
+                      </div>
+
+                      <div className="
+                        absolute
+                        bottom-5
+                        left-5
+                        right-5
+                      ">
+
+                        <span className="
+                          inline-block
+                          bg-[#8B4513]
+                          text-[#FAF6F0]
+                          text-xs
+                          font-semibold
+                          px-3
+                          py-1.5
+                          rounded-full
+                        ">
+                          Atelier Tailoring Service
+                        </span>
+
+                      </div>
 
                     </div>
 
+
+                    {/* Card Content */}
+                    <div className="p-7">
+
+                      <h3 className="
+                        font-serif
+                        text-2xl
+                        text-[#38220F]
+                        group-hover:text-[#8B4513]
+                        transition
+                      ">
+                        {service.name}
+                      </h3>
+
+
+                      <p className="
+                        mt-3
+                        text-stone-500
+                        text-sm
+                        leading-7
+                        min-h-[70px]
+                      ">
+                        {service.description ||
+                          "Professional boutique service with careful attention to detail and fitting."}
+                      </p>
+
+
+                      {/* Duration + Price */}
+                      <div className="
+                        mt-6
+                        pt-5
+                        border-t
+                        border-[#E5D9CC]
+                        flex
+                        items-center
+                        justify-between
+                      ">
+
+                        {/* Duration */}
+                        <div className="flex items-center gap-2.5">
+
+                          <div className="
+                            w-9
+                            h-9
+                            rounded-xl
+                            bg-[#FAF6F0]
+                            flex
+                            items-center
+                            justify-center
+                            text-[#8B4513]
+                          ">
+                            <Clock size={17} />
+                          </div>
+
+                          <div>
+                            <p className="text-[11px] text-stone-400 font-bold uppercase">
+                              Duration
+                            </p>
+
+                            <p className="
+                              text-xs
+                              font-bold
+                              text-stone-800
+                            ">
+                              {service.duration} mins
+                            </p>
+                          </div>
+
+                        </div>
+
+
+                        {/* Price */}
+                        <div className="text-right">
+
+                          <p className="text-[11px] text-stone-400 font-bold uppercase">
+                            Fitting Fee
+                          </p>
+
+                          <div className="
+                            flex
+                            items-center
+                            justify-end
+                            text-[#8B4513]
+                            font-bold
+                            text-xl
+                          ">
+                            <IndianRupee size={17} />
+                            {service.price}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
                   </div>
 
-
-                  {/* Card Content */}
-                  <div className="p-7">
-
-                    <h3 className="
-                      font-serif
-                      text-2xl
-                      text-[#321f2b]
-                      group-hover:text-pink-600
-                      transition
-                    ">
-                      {service.name}
-                    </h3>
-
-
-                    <p className="
-                      mt-3
-                      text-gray-500
-                      text-sm
-                      leading-7
-                      min-h-[70px]
-                    ">
-                      {service.description ||
-                        "Professional boutique service with careful attention to detail and fitting."}
-                    </p>
-
-
-                    {/* Duration + Price */}
-                    <div className="
-                      mt-6
-                      pt-5
-                      border-t
-                      border-gray-100
-                      flex
-                      items-center
-                      justify-between
-                    ">
-
-                      {/* Duration */}
-                      <div className="flex items-center gap-2">
-
-                        <div className="
-                          w-9
-                          h-9
-                          rounded-full
-                          bg-pink-50
-                          flex
-                          items-center
-                          justify-center
-                          text-pink-600
-                        ">
-                          <Clock size={17} />
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-gray-400">
-                            Duration
-                          </p>
-
-                          <p className="
-                            text-sm
-                            font-semibold
-                            text-gray-700
-                          ">
-                            {service.duration} mins
-                          </p>
-                        </div>
-
-                      </div>
-
-
-                      {/* Price */}
-                      <div className="text-right">
-
-                        <p className="text-xs text-gray-400">
-                          Starting from
-                        </p>
-
-                        <div className="
-                          flex
-                          items-center
-                          justify-end
-                          text-pink-600
-                          font-bold
-                          text-xl
-                        ">
-                          <IndianRupee size={17} />
-                          {service.price}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    {/* Book Button */}
+                  {/* Direct Book Button */}
+                  <div className="p-7 pt-0">
                     <Link
                       to={`/slots/${service._id}`}
                       state={{ service, product: selectedProduct }}
                       className="
-                        mt-6
                         w-full
                         flex
                         items-center
                         justify-center
                         gap-2
-                        bg-pink-600
-                        hover:bg-pink-700
-                        text-white
-                        py-3
-                        rounded-lg
+                        bg-[#8B4513]
+                        hover:bg-[#6D340D]
+                        text-[#FAF6F0]
+                        py-3.5
+                        rounded-2xl
                         font-semibold
                         transition
                         duration-200
+                        shadow-md
+                        text-xs
                       "
                     >
-                      <CalendarDays size={18} />
-                      Book Appointment
-                      <ArrowRight size={17} />
+                      <CalendarDays size={17} />
+                      Select Available Slot
+                      <ArrowRight size={16} />
                     </Link>
-
                   </div>
 
                 </div>
@@ -455,10 +453,8 @@ function Services() {
       </section>
 
 
-      {/* =====================================================
-          BOTTOM CTA
-      ===================================================== */}
-      <section className="bg-[#321f2b] py-20 px-6">
+      {/* BOTTOM CTA */}
+      <section className="bg-[#2A1810] py-20 px-6">
 
         <div className="
           max-w-3xl
@@ -469,7 +465,7 @@ function Services() {
 
           <Sparkles
             size={30}
-            className="mx-auto text-pink-200"
+            className="mx-auto text-[#E5D9CC]"
           />
 
           <h2 className="
@@ -478,16 +474,16 @@ function Services() {
             text-4xl
             md:text-5xl
           ">
-            Ready for your perfect fit?
+            Ready for your custom fitting?
           </h2>
 
           <p className="
             mt-5
-            text-white/70
-            leading-7
+            text-white/80
+            leading-relaxed
+            text-sm
           ">
-            Select a service and book your appointment
-            with Dewani Boutique.
+            Select a service above and book your appointment slot with Dewani Atelier.
           </p>
 
           <Link
@@ -497,18 +493,19 @@ function Services() {
               items-center
               gap-2
               mt-7
-              bg-pink-600
-              hover:bg-pink-700
-              text-white
-              px-7
+              bg-[#8B4513]
+              hover:bg-[#6D340D]
+              text-[#FAF6F0]
+              px-8
               py-3.5
-              rounded-lg
+              rounded-2xl
               font-semibold
               transition
+              text-xs
             "
           >
-            View Services
-            <ArrowRight size={18} />
+            View All Fitting Services
+            <ArrowRight size={16} />
           </Link>
 
         </div>
@@ -520,4 +517,3 @@ function Services() {
 }
 
 export default Services;
-

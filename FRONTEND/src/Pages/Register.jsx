@@ -136,14 +136,14 @@ const handleSubmit = async (e) => {
         <div className="w-full max-w-md">
 
           {/* Mobile Logo */}
-          <div className="flex lg:hidden items-center justify-center gap-2 mb-12 text-2xl font-semibold text-pink-500">
+          <div className="flex lg:hidden items-center justify-center gap-2 mb-12 text-2xl font-semibold text-[#8B4513]">
             <Scissors size={25} />
             <span>Dewani Boutique</span>
           </div>
 
           {/* Heading */}
           <div className="mb-8">
-            <h2 className="font-serif text-4xl font-medium text-[#321f2b]">
+            <h2 className="font-serif text-4xl font-medium text-[#38220F]">
               Create Account
             </h2>
 
@@ -159,15 +159,15 @@ const handleSubmit = async (e) => {
             <div className="mb-5">
               <label
                 htmlFor="name"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Full Name
               </label>
 
-              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#ddd5da] bg-white focus-within:border-pink-500 focus-within:ring-4 focus-within:ring-pink-100">
+              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#E5D9CC] bg-white focus-within:border-[#8B4513] focus-within:ring-4 focus-within:ring-[#FAF6F0]">
                 <User
                   size={19}
-                  className="text-[#a18d98] shrink-0"
+                  className="text-[#8B4513]/60 shrink-0"
                 />
 
                 <input
@@ -186,7 +186,7 @@ const handleSubmit = async (e) => {
             <div className="mb-5">
               <label
                 htmlFor="role"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Register As
               </label>
@@ -194,7 +194,7 @@ const handleSubmit = async (e) => {
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full h-13 px-4 rounded-lg border border-[#ddd5da] bg-white outline-none text-sm text-gray-800 focus:border-pink-500 focus:ring-4 focus:ring-pink-100"
+                className="w-full h-13 px-4 rounded-lg border border-[#E5D9CC] bg-white outline-none text-sm text-gray-800 focus:border-[#8B4513] focus:ring-4 focus:ring-[#FAF6F0]"
               >
                 <option value="customer">Customer / Client</option>
                 <option value="admin">Admin / Store Manager</option>
@@ -205,15 +205,15 @@ const handleSubmit = async (e) => {
             <div className="mb-5">
               <label
                 htmlFor="email"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Email Address
               </label>
 
-              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#ddd5da] bg-white focus-within:border-pink-500 focus-within:ring-4 focus-within:ring-pink-100">
+              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#E5D9CC] bg-white focus-within:border-[#8B4513] focus-within:ring-4 focus-within:ring-[#FAF6F0]">
                 <Mail
                   size={19}
-                  className="text-[#a18d98] shrink-0"
+                  className="text-[#8B4513]/60 shrink-0"
                 />
 
                 <input
@@ -232,16 +232,16 @@ const handleSubmit = async (e) => {
             <div className="mb-5">
               <label
                 htmlFor="password"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Password
               </label>
 
-              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#ddd5da] bg-white focus-within:border-pink-500 focus-within:ring-4 focus-within:ring-pink-100">
+              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#E5D9CC] bg-white focus-within:border-[#8B4513] focus-within:ring-4 focus-within:ring-[#FAF6F0]">
 
                 <Lock
                   size={19}
-                  className="text-[#a18d98] shrink-0"
+                  className="text-[#8B4513]/60 shrink-0"
                 />
 
                 <input
@@ -257,7 +257,7 @@ const handleSubmit = async (e) => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
                   {showPassword ? (
                     <EyeOff size={19} />
@@ -273,16 +273,16 @@ const handleSubmit = async (e) => {
             <div className="mb-5">
               <label
                 htmlFor="confirmPassword"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Confirm Password
               </label>
 
-              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#ddd5da] bg-white focus-within:border-pink-500 focus-within:ring-4 focus-within:ring-pink-100">
+              <div className="flex items-center gap-3 h-13 px-4 rounded-lg border border-[#E5D9CC] bg-white focus-within:border-[#8B4513] focus-within:ring-4 focus-within:ring-[#FAF6F0]">
 
                 <Lock
                   size={19}
-                  className="text-[#a18d98] shrink-0"
+                  className="text-[#8B4513]/60 shrink-0"
                 />
 
                 <input
@@ -300,7 +300,7 @@ const handleSubmit = async (e) => {
                   onClick={() =>
                     setShowConfirmPassword(!showConfirmPassword)
                   }
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
                   {showConfirmPassword ? (
                     <EyeOff size={19} />
@@ -327,18 +327,19 @@ const handleSubmit = async (e) => {
                 w-full
                 h-13
                 rounded-lg
-                bg-pink-500
-                hover:bg-pink-600
-                active:bg-pink-700
+                bg-[#8B4513]
+                hover:bg-[#6D340D]
+                active:bg-[#522507]
                 text-white
                 text-sm
                 font-semibold
                 transition
                 duration-200
-                shadow-sm
-                hover:shadow-md
+                shadow-md
+                shadow-[#8B4513]/20
                 disabled:opacity-60
                 disabled:cursor-not-allowed
+                cursor-pointer
               "
             >
               {loading ? "Creating Account..." : "Create Account"}
@@ -353,7 +354,7 @@ const handleSubmit = async (e) => {
 
             <button
               onClick={() => navigate("/login")}
-              className="font-semibold text-pink-500 hover:text-pink-600"
+              className="font-semibold text-[#8B4513] hover:text-[#6D340D] cursor-pointer"
             >
               Login
             </button>

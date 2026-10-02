@@ -119,15 +119,15 @@ const Login = () => {
         <div className="w-full max-w-md">
 
           {/* Mobile Logo */}
-          <div className="flex lg:hidden items-center justify-center gap-2 mb-12 text-2xl font-semibold text-pink-500">
+          <div className="flex lg:hidden items-center justify-center gap-2 mb-12 text-2xl font-semibold text-[#8B4513]">
             <Scissors size={25} />
-            <span>Boutique</span>
+            <span>Dewani Boutique</span>
           </div>
 
           {/* Heading */}
           <div className="mb-8">
 
-            <h2 className="font-serif text-4xl font-medium text-[#321f2b]">
+            <h2 className="font-serif text-4xl font-medium text-[#38220F]">
               Welcome Back
             </h2>
 
@@ -145,7 +145,7 @@ const Login = () => {
 
               <label
                 htmlFor="email"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Email Address
               </label>
@@ -156,18 +156,18 @@ const Login = () => {
                   h-13
                   px-4
                   rounded-lg
-                  border border-[#ddd5da]
+                  border border-[#E5D9CC]
                   bg-white
                   transition
-                  focus-within:border-pink-500
+                  focus-within:border-[#8B4513]
                   focus-within:ring-4
-                  focus-within:ring-pink-100
+                  focus-within:ring-[#FAF6F0]
                 "
               >
 
                 <Mail
                   size={19}
-                  className="text-[#a18d98] shrink-0"
+                  className="text-[#8B4513]/60 shrink-0"
                 />
 
                 <input
@@ -196,7 +196,7 @@ const Login = () => {
 
               <label
                 htmlFor="password"
-                className="block mb-2 text-sm font-semibold text-[#3c2a34]"
+                className="block mb-2 text-sm font-semibold text-[#38220F]"
               >
                 Password
               </label>
@@ -207,18 +207,18 @@ const Login = () => {
                   h-13
                   px-4
                   rounded-lg
-                  border border-[#ddd5da]
+                  border border-[#E5D9CC]
                   bg-white
                   transition
-                  focus-within:border-pink-500
+                  focus-within:border-[#8B4513]
                   focus-within:ring-4
-                  focus-within:ring-pink-100
+                  focus-within:ring-[#FAF6F0]
                 "
               >
 
                 <Lock
                   size={19}
-                  className="text-[#a18d98] shrink-0"
+                  className="text-[#8B4513]/60 shrink-0"
                 />
 
                 <input
@@ -247,6 +247,7 @@ const Login = () => {
                     text-gray-400
                     hover:text-gray-600
                     transition
+                    cursor-pointer
                   "
                 >
                   {showPassword ? (
@@ -269,7 +270,7 @@ const Login = () => {
                   type="checkbox"
                   className="
                     w-4 h-4
-                    accent-pink-500
+                    accent-[#8B4513]
                   "
                 />
 
@@ -280,9 +281,9 @@ const Login = () => {
               <a
                 href="/forgot-password"
                 className="
-                  text-pink-500
+                  text-[#8B4513]
                   font-semibold
-                  hover:text-pink-600
+                  hover:text-[#6D340D]
                   transition
                 "
               >
@@ -306,18 +307,19 @@ const Login = () => {
                 w-full
                 h-13
                 rounded-lg
-                bg-pink-500
-                hover:bg-pink-600
-                active:bg-pink-700
+                bg-[#8B4513]
+                hover:bg-[#6D340D]
+                active:bg-[#522507]
                 text-white
                 text-sm
                 font-semibold
                 transition
                 duration-200
-                shadow-sm
-                hover:shadow-md
+                shadow-md
+                shadow-[#8B4513]/20
                 disabled:opacity-60
                 disabled:cursor-not-allowed
+                cursor-pointer
               "
             >
               {loading ? "Logging in..." : "Log In"}
@@ -334,8 +336,8 @@ const Login = () => {
               href="/register"
               className="
                 font-semibold
-                text-pink-500
-                hover:text-pink-600
+                text-[#8B4513]
+                hover:text-[#6D340D]
               "
             >
               Create Account

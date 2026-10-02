@@ -116,7 +116,7 @@ function Profile() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto py-16 px-6 text-center text-gray-500">
-        <div className="animate-spin w-8 h-8 border-4 border-pink-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-[#E5D9CC] border-t-[#8B4513] rounded-full mx-auto mb-4"></div>
         Loading profile details...
       </div>
     );
@@ -125,11 +125,11 @@ function Profile() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
       <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 bg-pink-100 text-pink-600 rounded-xl">
+        <div className="p-3 bg-[#FAF6F0] text-[#8B4513] border border-[#E5D9CC] rounded-xl">
           <User size={28} />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Customer Measurement Profile</h1>
+          <h1 className="text-3xl font-bold text-[#38220F]">Customer Measurement Profile</h1>
           <p className="text-gray-500 text-sm">
             Save your measurements once and use them for seamless custom tailoring & stitching orders.
           </p>
@@ -151,9 +151,9 @@ function Profile() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Personal Details Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <User className="text-pink-600" size={20} />
+        <div className="bg-white p-6 rounded-2xl shadow-xs border border-[#E5D9CC]">
+          <h2 className="text-xl font-bold text-[#38220F] mb-4 flex items-center gap-2">
+            <User className="text-[#8B4513]" size={20} />
             Personal & Contact Information
           </h2>
 
@@ -188,7 +188,7 @@ function Profile() {
                 value={profile.phone}
                 onChange={handleChange}
                 placeholder="+91 98765 43210"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
 
@@ -202,16 +202,16 @@ function Profile() {
                 value={profile.address}
                 onChange={handleChange}
                 placeholder="Street name, City, Pincode"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
           </div>
         </div>
 
         {/* Custom Measurements Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-            <Ruler className="text-pink-600" size={20} />
+        <div className="bg-white p-6 rounded-2xl shadow-xs border border-[#E5D9CC]">
+          <h2 className="text-xl font-bold text-[#38220F] mb-2 flex items-center gap-2">
+            <Ruler className="text-[#8B4513]" size={20} />
             Body Measurement Specifications (inches)
           </h2>
           <p className="text-xs text-gray-500 mb-6">
@@ -227,7 +227,7 @@ function Profile() {
                 value={profile.measurements.bust}
                 onChange={handleChange}
                 placeholder="e.g. 36"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
 
@@ -239,7 +239,7 @@ function Profile() {
                 value={profile.measurements.waist}
                 onChange={handleChange}
                 placeholder="e.g. 30"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
 
@@ -251,7 +251,7 @@ function Profile() {
                 value={profile.measurements.hips}
                 onChange={handleChange}
                 placeholder="e.g. 38"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
 
@@ -263,7 +263,7 @@ function Profile() {
                 value={profile.measurements.shoulder}
                 onChange={handleChange}
                 placeholder="e.g. 14.5"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
 
@@ -275,7 +275,7 @@ function Profile() {
                 value={profile.measurements.sleeveLength}
                 onChange={handleChange}
                 placeholder="e.g. 18"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
 
@@ -287,7 +287,7 @@ function Profile() {
                 value={profile.measurements.garmentLength}
                 onChange={handleChange}
                 placeholder="e.g. 42"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
               />
             </div>
           </div>
@@ -302,7 +302,7 @@ function Profile() {
               value={profile.measurements.notes}
               onChange={handleChange}
               placeholder="e.g. Prefer deep V-neckline, additional inner lining, padded blouse..."
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B4513] focus:border-[#8B4513] transition"
             />
           </div>
         </div>
@@ -312,7 +312,7 @@ function Profile() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-8 py-3 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-xl shadow-md transition duration-200 disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-8 py-3 bg-[#8B4513] hover:bg-[#6D340D] text-white font-semibold rounded-xl shadow-md shadow-[#8B4513]/20 transition duration-200 disabled:opacity-50 cursor-pointer"
           >
             <Save size={18} />
             {saving ? "Saving Profile..." : "Save Profile & Measurements"}

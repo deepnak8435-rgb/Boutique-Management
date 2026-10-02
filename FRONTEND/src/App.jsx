@@ -11,6 +11,7 @@ import Slots from "./Pages/Slot";
 import MyBookings from "./Pages/MyBookings";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
+import CustomOrderWizard from "./Pages/CustomOrderWizard";
 
 function App() {
   return (
@@ -23,6 +24,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/services" element={<Services />} />
         <Route path="/products" element={<Products />} />
+
+        {/* Multi-Step Custom Design & Slot Booking Studio */}
+        <Route path="/custom-designer" element={<CustomOrderWizard />} />
+        <Route path="/custom-order" element={<CustomOrderWizard />} />
 
         {/* Customer Profile & Body Measurements */}
         <Route path="/profile" element={<Profile />} />

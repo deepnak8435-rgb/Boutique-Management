@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ["Sarees", "Lehengas", "Custom Gowns", "Blouse Designs", "Designer Suits", "Fabrics", "Accessories"],
+    enum: ["Sarees", "Lehengas", "Custom Gowns", "Blouse Designs", "Designer Suits", "Fabrics", "Accessories", "Reference Models"],
     default: "Sarees",
   },
   price: {
@@ -25,6 +25,35 @@ const productSchema = new mongoose.Schema({
   fabric: {
     type: String,
     default: "Silk",
+  },
+  // Rich Fabric & Material Specifications
+  fabricType: {
+    type: String,
+    default: "Pure Silk",
+  },
+  flow: {
+    type: String,
+    default: "Fluid & Soft Drape",
+  },
+  texture: {
+    type: String,
+    default: "Silky Smooth",
+  },
+  dyeable: {
+    type: Boolean,
+    default: true,
+  },
+  careInstructions: {
+    type: String,
+    default: "Dry Wash Only",
+  },
+  suitableFor: {
+    type: String,
+    default: "Bridal & Partywear",
+  },
+  isReferenceModel: {
+    type: Boolean,
+    default: false,
   },
   stock: {
     type: Number,

@@ -4,11 +4,9 @@ const Product = require("../models/Product");
 async function createProduct(req, res) {
   try {
     const { name, category, price, description, image, fabric, stock, featured } = req.body;
-
     if (!name || price === undefined || !category) {
       return res.status(400).json({ error: "Name, category, and price are required." });
     }
-
     // Determine image source: Multer uploaded file path vs URL string
     let imageUrl = "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80";
     if (req.file) {
@@ -102,10 +100,4 @@ async function deleteProduct(req, res) {
   }
 }
 
-module.exports = {
-  createProduct,
-  getAllProducts,
-  getProductById,
-  updateProduct,
-  deleteProduct,
-};
+module.exports = {createProduct,getAllProducts,getProductById,updateProduct,deleteProduct,};
